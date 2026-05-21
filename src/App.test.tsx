@@ -47,6 +47,13 @@ describe("Workshop guide", () => {
     expect(screen.getByText(/copy the template/i)).toBeInTheDocument();
   });
 
+  it("documents the real updatedPatient context-change payload", () => {
+    render(<App />);
+
+    expect(screen.getAllByText(/updatedPatient/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/patientContextChanged/i).length).toBeGreaterThan(0);
+  });
+
   it("uses legible dark text in the sidecar preview", () => {
     render(<App />);
 

@@ -141,11 +141,11 @@ const workshopSteps: WorkshopStep[] = [
     time: "Extension",
     outcome: "The sidecar reacts when Athena changes patient or encounter context.",
     prompt:
-      "Only modify {{APP_FOLDER}}. Add a window message listener for inbound Embedded App Framework context-change events. When patient context changes, reset the active prep card, clear local detail state, and reload patient identity if a patient identifier is available. Show a compact developer event log in local demo mode so the team can see received event names.",
+      'Only modify {{APP_FOLDER}}. Add a window message listener for inbound Embedded App Framework context-change events. The real patient-change payload can look like { event: "patientContextChanged", updatedPatient: "5" }, so treat updatedPatient as a valid patient identifier in addition to patientId, patientID, patientIdentifier, fhirPatientId, or patient.id. When patient context changes, reset the active prep card, clear reminder/detail state, and reload {{PATIENT_CONTEXT_PATH}} if a patient identifier is available. Show a compact developer event log in local demo mode so the team can see received event names.',
     expected:
       "Switching context in Athena resets the sidecar to the correct patient instead of showing stale prep state.",
     fallback:
-      "If a live context-change event is not available, add a local Simulate context change button in demo mode.",
+      'If a live context-change event is not available, add a local Simulate context change button in demo mode that dispatches { event: "patientContextChanged", updatedPatient: "5" }.',
   },
 ];
 
@@ -178,7 +178,7 @@ const postMessageItems: ReferenceItem[] = [
   {
     method: "patientContextChanged",
     participantAction: "Switch patients in Athena",
-    workshopUse: "Lets the app update real patient identity and reset mock cards.",
+    workshopUse: "Reloads patient identity when the event includes updatedPatient or another patient identifier.",
   },
 ];
 
