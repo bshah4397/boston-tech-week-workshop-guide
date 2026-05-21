@@ -65,15 +65,15 @@ const workshopSteps: WorkshopStep[] = [
   },
   {
     id: "smart",
-    title: "Add SMART Patient Context",
+    title: "Enable SMART Patient Context",
     time: "8 min",
     outcome: "The app is ready to use real Athena launch context instead of only demo data.",
     prompt:
-      "Only modify {{APP_FOLDER}}. Use the existing slot-scoped APIs: {{LAUNCH_PATH}}, {{CALLBACK_PATH}}, and {{PATIENT_CONTEXT_PATH}}. Preserve local demo mode. Add explicit states for setup required, launch in progress, callback received, patient loaded, and patient load failed. When patient context is available, render real patient name, DOB, FHIR ID, and gender in a patient banner. Do not render developer details, tokens, authorization codes, PKCE verifiers, cookies, or raw bearer headers.",
+      "Only modify {{APP_FOLDER}}. In the WORKSHOP_FEATURES map, set smartPatientContext to true. Use the existing staged code and slot-scoped APIs: {{LAUNCH_PATH}}, {{CALLBACK_PATH}}, and {{PATIENT_CONTEXT_PATH}}. Preserve local demo mode. Verify the app shows setup required, launch in progress, callback received, patient context loading, patient loaded, and patient load failed states without recreating the UI from scratch. When patient context is available, render real patient name, DOB, FHIR ID, and gender in the existing patient banner. Do not render developer details, tokens, authorization codes, PKCE verifiers, cookies, or raw bearer headers.",
     expected:
-      "The sidecar still works locally, and the real launch path has clear patient-context states without exposing sensitive OAuth material.",
+      "The sidecar still works locally, and the real launch path has clear patient-context loading states without exposing sensitive OAuth material.",
     fallback:
-      "If real SMART wiring is not ready in your environment, keep demo patient data but add the same states so the UI can be tested.",
+      "If real SMART wiring is not ready in your environment, set smartPatientContext back to false, keep demo patient data, and continue with the staged UI toggles.",
   },
   {
     id: "clinical",
@@ -81,11 +81,11 @@ const workshopSteps: WorkshopStep[] = [
     time: "7 min",
     outcome: "The app feels like a clinical product, not a hello-world demo.",
     prompt:
-      "Only modify {{APP_FOLDER}}. Turn the Patient Context screen into a Visit Prep Sidecar. Keep real patient name, DOB, and FHIR ID in a visually distinct patient banner when SMART context is available, and keep demo identity for local mode. Add two neutral mock prep cards: Vitals review due and Medication reconciliation. Do not add badges, resize behavior, or attention highlighting yet.",
+      "Only modify {{APP_FOLDER}}. In the WORKSHOP_FEATURES map, set visitPrepCards to true. Use the staged Visit Prep card layout already in the template rather than designing new cards. Keep real patient name, DOB, and FHIR ID in the visually distinct patient banner when SMART context is available, and keep demo identity for local mode. Confirm the two neutral mock prep cards are visible: Vitals review due and Medication reconciliation. Do not add badges, resize behavior, or attention highlighting yet.",
     expected:
       "At 400px width, the sidecar shows patient identity and two neutral prep cards without generic demo buttons.",
     fallback:
-      "Paste the fallback card data and render it below the patient header. The clinical content can be mock data.",
+      "If the cards are missing, check WORKSHOP_FEATURES.visitPrepCards first before changing JSX.",
   },
   {
     id: "resize",
@@ -93,11 +93,11 @@ const workshopSteps: WorkshopStep[] = [
     time: "5 min",
     outcome: "The app can request more workspace only when the user needs detail.",
     prompt:
-      "Only modify {{APP_FOLDER}}. Add an Open details action to the Vitals review due card. When clicked, send appResize version 1.0.0 with newWidth set to 600 and show a Review details panel with rationale and next steps. Add a Collapse details action in the detail panel that sends appResize version 1.0.0 with newWidth set to 400 and returns to the compact prep list.",
+      "Only modify {{APP_FOLDER}}. In the WORKSHOP_FEATURES map, set resizeDetails to true. Use the staged Open details and Collapse details UI already in the template. When Open details is clicked, verify it sends appResize version 1.0.0 with newWidth set to 800 and shows the Review details panel with rationale and next steps. When Collapse details is clicked, verify it sends appResize version 1.0.0 with newWidth set to 400 and returns to the compact prep list.",
     expected:
-      "The sidecar expands from compact prep view to a wider detail view, then collapses back to 400px from the detail panel.",
+      "The sidecar expands from compact prep view to an 800px detail view, then collapses back to 400px from the detail panel.",
     fallback:
-      "Fallback snippets: send appResize with newWidth set to 600 for Open details, and appResize with newWidth set to 400 for Collapse details.",
+      "Fallback snippets: send appResize with newWidth set to 800 for Open details, and appResize with newWidth set to 400 for Collapse details.",
   },
   {
     id: "badge",
@@ -105,11 +105,11 @@ const workshopSteps: WorkshopStep[] = [
     time: "5 min",
     outcome: "The sidecar can ask for attention when business logic says the gap matters.",
     prompt:
-      "Only modify {{APP_FOLDER}}. Use or refine the local post-message helper for Embedded App Launcher messages. When the Vitals review due gap is present on load, send appShowBadgePersistent version 1.0.0 automatically instead of adding a manual Flag for review button. Visually mark the card with a small red status dot. When Mark reviewed is clicked in the detail view, send appClearBadge version 1.0.0, send appResize version 1.0.0 with newWidth set to 400, and show the card as Reviewed.",
+      "Only modify {{APP_FOLDER}}. In the WORKSHOP_FEATURES map, set automaticBadge to true. Use the staged badge behavior already in the template. When the Vitals review due gap is present on load, verify the app sends appShowBadgePersistent version 1.0.0 automatically instead of adding a manual Flag for review button. Verify the card shows a small red status dot. When Mark reviewed is clicked in the detail view, verify it sends appClearBadge version 1.0.0, sends appResize version 1.0.0 with newWidth set to 400, and shows the card as Reviewed.",
     expected:
       "Opening the app with an active vitals gap shows an Athena badge automatically; marking reviewed clears the badge and returns to compact mode.",
     fallback:
-      "Fallback snippets: appShowBadgePersistent on load, appClearBadge when reviewed, and appResize with newWidth set to 400 after review.",
+      "If the badge does not fire, check WORKSHOP_FEATURES.automaticBadge and the local sendEmbeddedAppMessage helper before changing UI.",
   },
   {
     id: "context",
@@ -117,7 +117,7 @@ const workshopSteps: WorkshopStep[] = [
     time: "5 min",
     outcome: "The sidecar reacts when Athena changes patient context.",
     prompt:
-      'Only modify {{APP_FOLDER}}. Add a window message listener for inbound Embedded App Framework context-change events. At the top of the listener, console.log every received message with a label like "[{{APP_SLOT}}] received window message" before filtering so DevTools can prove whether the app received anything. The real patient-change payload can look like { event: "patientContextChanged", updatedPatient: "5" }, so treat updatedPatient as a valid patient identifier in addition to patientId, patientID, patientIdentifier, fhirPatientId, or patient.id. When patient context changes, reset the active prep card, clear detail/review state, and reload {{PATIENT_CONTEXT_PATH}}?updatedPatient=<encoded patient identifier> if a patient identifier is available. Do not reload the plain {{PATIENT_CONTEXT_PATH}} for a patient-change event because it will reuse the original SMART launch patient.',
+      'Only modify {{APP_FOLDER}}. In the WORKSHOP_FEATURES map, set patientContextListener to true. Use the staged window message listener already in the template. Confirm the listener console.log records every received message with a label like "[{{APP_SLOT}}] received window message" before filtering so DevTools can prove whether the app received anything. The real patient-change payload can look like { event: "patientContextChanged", updatedPatient: "5" }, so updatedPatient must be treated as a valid patient identifier in addition to patientId, patientID, patientIdentifier, fhirPatientId, or patient.id. When patient context changes, verify the app resets the active prep card, clears detail/review state, and reloads {{PATIENT_CONTEXT_PATH}}?updatedPatient=<encoded patient identifier>. Do not reload the plain {{PATIENT_CONTEXT_PATH}} for a patient-change event because it will reuse the original SMART launch patient.',
     expected:
       "Switching context in Athena reloads the sidecar to the new patient instead of showing stale prep state.",
     fallback:
@@ -129,7 +129,7 @@ const workshopSteps: WorkshopStep[] = [
     time: "Extension",
     outcome: "The app returns at the right moment after the provider manually minimizes it.",
     prompt:
-      "Only modify {{APP_FOLDER}}. Do not add a programmatic minimize button. In the live demo, the provider manually minimizes the sidecar using Athena chrome, then navigates to another patient. When the patientContextChanged listener reloads a new patient that still has an attention-needed prep gap, send appReopen version 1.0.0 so the sidecar returns with the new patient identity and compact prep state.",
+      "Only modify {{APP_FOLDER}}. In the WORKSHOP_FEATURES map, set reopenAfterPatientChange to true. Do not add a programmatic minimize button. In the live demo, the provider manually minimizes the sidecar using Athena chrome, then navigates to another patient. When the patientContextChanged listener reloads a new patient that still has an attention-needed prep gap, verify the staged code sends appReopen version 1.0.0 so the sidecar returns with the new patient identity and compact prep state.",
     expected:
       "After the provider manually minimizes the app and changes patient, the app reopens only because the new patient has an attention-needed prep gap.",
     fallback:
@@ -146,7 +146,7 @@ const postMessageItems: ReferenceItem[] = [
   {
     method: "appResize",
     participantAction: "Open or collapse details",
-    workshopUse: "Moves between 400px compact mode and 600px detail mode.",
+    workshopUse: "Moves between 400px compact mode and 800px detail mode.",
   },
   {
     method: "appClearBadge",
@@ -244,7 +244,7 @@ function personalizePrompt(prompt: string, context: PromptContext) {
 }
 
 function addStepCommitInstruction(prompt: string, context: PromptContext) {
-  return `${prompt}\n\nWhen finished, commit any tracked changes with a message like "${context.appSlot}: short message".`;
+  return `${prompt}\n\nWhen finished, run git status. If there are changes, commit them with a message like "${context.appSlot}: short message", then push to main with git push origin main.`;
 }
 
 function copyLabel(copiedId: string | null, id: string) {
@@ -525,6 +525,7 @@ export function App() {
           <h2 id="troubleshooting-heading">Troubleshooting</h2>
           <div className="trouble-grid">
             <Trouble title="SMART launch fails" text="Check the /api/apps/app-XXX/smart/launch URL, api/_lib/workshop-config.ts client ID entry, callback URL, and preview practice entitlement before changing code." />
+            <Trouble title="Callback appears first" text="The launch API is redirect plumbing. After the callback API completes token exchange, the app redirects to /app-XXX?smart=1 and shows patient-context loading there." />
             <Trouble title="PostMessage does nothing" text="Check message shape, methodVersion, accepted origin, and whether the app is actually embedded in Athena." />
             <Trouble title="Deployment breaks" text="Use the internal test slot first. If main is unstable, switch participants to prebuilt catch-up slots." />
             <Trouble title="Participant falls behind" text="Use the fallback snippet for the current step, then continue with the next guided prompt." />

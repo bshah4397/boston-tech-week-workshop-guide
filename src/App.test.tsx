@@ -23,7 +23,7 @@ describe("Workshop guide", () => {
     expect(screen.getAllByText(/75-minute extension/i).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: /copy prompt/i })).not.toHaveLength(0);
     expect(screen.getAllByText(/fallback snippet/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/appResize version 1\.0\.0 with newWidth set to 600/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/appResize version 1\.0\.0 with newWidth set to 800/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/newWidth set to 400/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/provider manually minimizes/i).length).toBeGreaterThan(0);
   });
@@ -56,7 +56,8 @@ describe("Workshop guide", () => {
     expect(screen.getByText(/git account or access/i)).toBeInTheDocument();
     expect(screen.getByText(/node installed/i)).toBeInTheDocument();
     expect(screen.getByText(/codex, claude code, cursor, windsurf/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/commit any tracked changes/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/commit them with a message/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/git push origin main/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/app-007: short message/i).length).toBeGreaterThan(0);
   });
 
@@ -66,6 +67,7 @@ describe("Workshop guide", () => {
     expect(screen.getByRole("heading", { name: /add resize and collapse details/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /add automatic badge behavior/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /reopen after patient change/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/WORKSHOP_FEATURES/i).length).toBeGreaterThan(0);
     expect(screen.queryByRole("heading", { name: /get out of the provider's way/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/snooze while i update athena action/i)).not.toBeInTheDocument();
   });
@@ -75,7 +77,7 @@ describe("Workshop guide", () => {
 
     expect(screen.getAllByText(/updatedPatient/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/patientContextChanged/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/console\.log every received message/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/listener console\.log records every received message/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/patient-context\?updatedPatient/i).length).toBeGreaterThan(0);
   });
 
