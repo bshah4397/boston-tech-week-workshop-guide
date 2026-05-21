@@ -52,6 +52,7 @@ describe("Workshop guide", () => {
 
     expect(screen.getAllByText(/updatedPatient/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/patientContextChanged/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/console\.log every received message/i).length).toBeGreaterThan(0);
   });
 
   it("uses legible dark text in the sidecar preview", () => {
