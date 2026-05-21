@@ -474,7 +474,7 @@ export function App() {
               title="Athena readiness"
               items={[
                 "Confirm preview access and practice entitlement.",
-                "Confirm the slot has a SMART_CLIENT_ID_APP_XXX deployment variable.",
+                "Confirm the slot client ID is listed in api/_lib/workshop-config.ts.",
                 "Confirm launch, callback, and logout URLs use the assigned app number.",
                 "Confirm postMessage origin uses the shared Vercel domain.",
               ]}
@@ -528,7 +528,7 @@ export function App() {
           <div className="section-kicker">Recovery paths</div>
           <h2 id="troubleshooting-heading">Troubleshooting</h2>
           <div className="trouble-grid">
-            <Trouble title="SMART launch fails" text="Check the /api/apps/app-XXX/smart/launch URL, slot client ID variable, callback URL, and preview practice entitlement before changing code." />
+            <Trouble title="SMART launch fails" text="Check the /api/apps/app-XXX/smart/launch URL, api/_lib/workshop-config.ts client ID entry, callback URL, and preview practice entitlement before changing code." />
             <Trouble title="PostMessage does nothing" text="Check message shape, methodVersion, accepted origin, and whether the app is actually embedded in Athena." />
             <Trouble title="Deployment breaks" text="Use the internal test slot first. If main is unstable, switch participants to prebuilt catch-up slots." />
             <Trouble title="Participant falls behind" text="Use the fallback snippet for the current step, then continue with the next guided prompt." />
