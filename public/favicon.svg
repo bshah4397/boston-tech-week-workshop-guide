@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Embedded Apps Workshop">
+  <rect width="64" height="64" rx="14" fill="#123c69"/>
+  <path d="M17 20h30v24H17z" fill="#f8fbff"/>
+  <path d="M23 26h18M23 32h12M23 38h18" stroke="#123c69" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="47" cy="19" r="8" fill="#d4472f"/>
+</svg>
