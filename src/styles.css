@@ -431,6 +431,7 @@ button {
 }
 
 .sidecar-patient-name,
+.sidecar-app-title,
 .gap-card strong {
   color: #14324a;
 }
@@ -450,6 +451,11 @@ button {
   margin-bottom: 5px;
   margin-top: 0;
   text-transform: uppercase;
+}
+
+.sidecar-app-title {
+  font-size: 22px;
+  line-height: 1.1;
 }
 
 .smart-chip,
@@ -475,14 +481,73 @@ button {
   padding: 12px;
 }
 
+.preview-patient-banner {
+  align-items: center;
+  background: #e1eff5;
+  border: 1px solid #c1d9e5;
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+}
+
+.preview-avatar {
+  align-items: center;
+  background: #f9fcfd;
+  border: 1px solid #b8d4df;
+  border-radius: 8px;
+  color: #08756f;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 820;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
 .gap-card.active {
   background: #fff7e8;
   border-color: #efc16f;
 }
 
+.gap-card-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.gap-card-head span:first-child {
+  color: #08756f;
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.preview-status-dot {
+  background: #df3b2f;
+  border: 3px solid #ffe6d9;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px #f4b6a7;
+  height: 15px;
+  width: 15px;
+}
+
 .gap-card span {
   color: #657688;
   font-size: 13px;
+}
+
+.gap-card .mini-action {
+  align-self: end;
+  background: #0d8290;
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 800;
+  justify-self: end;
+  margin-top: 5px;
+  padding: 8px 11px;
 }
 
 .page-section {

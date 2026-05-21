@@ -53,11 +53,11 @@ const workshopSteps: WorkshopStep[] = [
   },
   {
     id: "bootstrap",
-    title: "Verify The Local Slot",
+    title: "Run The Local Demo",
     time: "5 min",
-    outcome: "The copied template is routable under your assigned app URL.",
+    outcome: "The copied template is routable and visible on localhost.",
     prompt:
-      "Only modify {{APP_FOLDER}}. Verify the slot works at {{APP_BASE_PATH}}/demo and {{LOGOUT_PATH}}. Confirm the Athena registration URLs for this slot are {{LAUNCH_PATH}} for launch, {{CALLBACK_PATH}} for post-login redirect, and {{LOGOUT_PATH}} for post-logout redirect. If the app host dashboard does not list {{APP_SLOT}}, fix only import paths or slotConfig inside {{APP_FOLDER}}. Do not change shared slot discovery.",
+      "Only modify {{APP_FOLDER}}. Start the local app-host dev server on localhost, then verify the slot works at {{APP_BASE_PATH}}/demo and {{LOGOUT_PATH}}. Confirm the Athena registration URLs for this slot are {{LAUNCH_PATH}} for launch, {{CALLBACK_PATH}} for post-login redirect, and {{LOGOUT_PATH}} for post-logout redirect. If the app host dashboard does not list {{APP_SLOT}}, fix only import paths or slotConfig inside {{APP_FOLDER}}. Do not change shared slot discovery.",
     expected:
       "The host dashboard lists your slot, local demo mode renders, and the three Athena registration URLs are slot-specific.",
     fallback:
@@ -69,7 +69,7 @@ const workshopSteps: WorkshopStep[] = [
     time: "8 min",
     outcome: "The app is ready to use real Athena launch context instead of only demo data.",
     prompt:
-      "Only modify {{APP_FOLDER}}. Use the existing slot-scoped APIs: {{LAUNCH_PATH}}, {{CALLBACK_PATH}}, and {{PATIENT_CONTEXT_PATH}}. Preserve local demo mode. Add explicit states for setup required, launch in progress, callback received, patient loaded, and patient load failed. When Patient context is available, render real patient name, DOB, FHIR ID, gender, and a collapsed developer details section. Never render tokens, authorization codes, PKCE verifiers, cookies, or raw bearer headers.",
+      "Only modify {{APP_FOLDER}}. Use the existing slot-scoped APIs: {{LAUNCH_PATH}}, {{CALLBACK_PATH}}, and {{PATIENT_CONTEXT_PATH}}. Preserve local demo mode. Add explicit states for setup required, launch in progress, callback received, patient loaded, and patient load failed. When patient context is available, render real patient name, DOB, FHIR ID, and gender in a patient banner. Do not render developer details, tokens, authorization codes, PKCE verifiers, cookies, or raw bearer headers.",
     expected:
       "The sidecar still works locally, and the real launch path has clear patient-context states without exposing sensitive OAuth material.",
     fallback:
@@ -77,103 +77,86 @@ const workshopSteps: WorkshopStep[] = [
   },
   {
     id: "clinical",
-    title: "Add Visit Prep Cards",
+    title: "Build Neutral Visit Prep UI",
     time: "7 min",
     outcome: "The app feels like a clinical product, not a hello-world demo.",
     prompt:
-      "Only modify {{APP_FOLDER}}. Turn the Patient Context screen into a Visit Prep Sidecar. Keep real patient name, DOB, and FHIR ID at the top when SMART context is available, and keep demo identity for local mode. Add three mock clinical prep cards: Vitals review due, Medication reconciliation, and Referral follow-up. Highlight one card as the active care gap.",
+      "Only modify {{APP_FOLDER}}. Turn the Patient Context screen into a Visit Prep Sidecar. Keep real patient name, DOB, and FHIR ID in a visually distinct patient banner when SMART context is available, and keep demo identity for local mode. Add two neutral mock prep cards: Vitals review due and Medication reconciliation. Do not add badges, resize behavior, or attention highlighting yet.",
     expected:
-      "At 400px width, the sidecar shows patient identity, three prep cards, and one highlighted gap with a Review details action.",
+      "At 400px width, the sidecar shows patient identity and two neutral prep cards without generic demo buttons.",
     fallback:
       "Paste the fallback card data and render it below the patient header. The clinical content can be mock data.",
   },
   {
-    id: "badge",
-    title: "Ask For Attention",
-    time: "5 min",
-    outcome: "The sidecar can signal that a provider should look at it.",
-    prompt:
-      "Only modify {{APP_FOLDER}}. Use or refine the local post-message helper for Embedded App Launcher messages. When the active Visit Prep gap is present, add a clinical action that sends appShowBadgePersistent version 1.0.0 to the parent frame. Use a product label like Flag for review, not a raw API label.",
-    expected:
-      "Clicking the product action shows a notification badge on the app icon inside Athena.",
-    fallback:
-      "Fallback snippet: window.parent.postMessage({ type: 'embeddedAppAPIMessage', method: 'appShowBadgePersistent', methodVersion: '1.0.0' }, '*');",
-  },
-  {
     id: "resize",
-    title: "Expand For Details",
+    title: "Add Resize And Collapse Details",
     time: "5 min",
-    outcome: "The app can request more workspace when the user needs detail.",
+    outcome: "The app can request more workspace only when the user needs detail.",
     prompt:
-      "Only modify {{APP_FOLDER}}. When the user clicks Review details on the active Visit Prep gap, send appResize version 1.0.0 with newWidth set to 600, then show a detail view with rationale and next steps.",
+      "Only modify {{APP_FOLDER}}. Add an Open details action to the Vitals review due card. When clicked, send appResize version 1.0.0 with newWidth set to 600 and show a Review details panel with rationale and next steps. Add a Collapse details action in the detail panel that sends appResize version 1.0.0 with newWidth set to 400 and returns to the compact prep list.",
     expected:
-      "The sidecar expands from compact prep view to a wider detail view and the app UI uses the extra space.",
+      "The sidecar expands from compact prep view to a wider detail view, then collapses back to 400px from the detail panel.",
     fallback:
-      "Fallback snippet: window.parent.postMessage({ type: 'embeddedAppAPIMessage', method: 'appResize', methodVersion: '1.0.0', newWidth: '600' }, '*');",
+      "Fallback snippets: send appResize with newWidth set to 600 for Open details, and appResize with newWidth set to 400 for Collapse details.",
   },
   {
-    id: "minimize",
-    title: "Get Out Of The Provider's Way",
+    id: "badge",
+    title: "Add Automatic Badge Behavior",
     time: "5 min",
-    outcome: "The sidecar can step aside while Athena becomes the focus.",
+    outcome: "The sidecar can ask for attention when business logic says the gap matters.",
     prompt:
-      "Only modify {{APP_FOLDER}}. Add a Snooze while I update Athena action in the gap detail view. When clicked, send appMinimize version 1.0.0. Keep local state so the app can later return to the reminder state.",
+      "Only modify {{APP_FOLDER}}. Use or refine the local post-message helper for Embedded App Launcher messages. When the Vitals review due gap is present on load, send appShowBadgePersistent version 1.0.0 automatically instead of adding a manual Flag for review button. Visually mark the card with a small red status dot. When Mark reviewed is clicked in the detail view, send appClearBadge version 1.0.0, send appResize version 1.0.0 with newWidth set to 400, and show the card as Reviewed.",
     expected:
-      "The app minimizes from the Athena sidecar, leaving the chart workspace visible.",
+      "Opening the app with an active vitals gap shows an Athena badge automatically; marking reviewed clears the badge and returns to compact mode.",
     fallback:
-      "Fallback snippet: window.parent.postMessage({ type: 'embeddedAppAPIMessage', method: 'appMinimize', methodVersion: '1.0.0' }, '*');",
-  },
-  {
-    id: "reopen",
-    title: "Return And Resolve",
-    time: "5 min",
-    outcome: "The app can reopen, clear attention, and complete the workflow.",
-    prompt:
-      "Only modify {{APP_FOLDER}}. Add a reminder flow that can send appReopen version 1.0.0 and return to the gap detail screen. Add Mark reviewed to send appClearBadge version 1.0.0 and return the app to compact Visit Prep mode.",
-    expected:
-      "The app reopens, lets the user mark the gap reviewed, clears the badge, and returns to the compact prep list.",
-    fallback:
-      "Fallback snippets: send appReopen to return, then appClearBadge when reviewed. If timing is short, wire these to two visible buttons.",
+      "Fallback snippets: appShowBadgePersistent on load, appClearBadge when reviewed, and appResize with newWidth set to 400 after review.",
   },
   {
     id: "context",
-    title: "Listen For Context Changes",
-    time: "Extension",
-    outcome: "The sidecar reacts when Athena changes patient or encounter context.",
+    title: "Listen For Patient Changes",
+    time: "5 min",
+    outcome: "The sidecar reacts when Athena changes patient context.",
     prompt:
-      'Only modify {{APP_FOLDER}}. Add a window message listener for inbound Embedded App Framework context-change events. At the top of the listener, console.log every received message with a label like "[{{APP_SLOT}}] received window message" before filtering so DevTools can prove whether the app received anything. The real patient-change payload can look like { event: "patientContextChanged", updatedPatient: "5" }, so treat updatedPatient as a valid patient identifier in addition to patientId, patientID, patientIdentifier, fhirPatientId, or patient.id. When patient context changes, reset the active prep card, clear reminder/detail state, and reload {{PATIENT_CONTEXT_PATH}}?updatedPatient=<encoded patient identifier> if a patient identifier is available. Do not reload the plain {{PATIENT_CONTEXT_PATH}} for a patient-change event because it will reuse the original SMART launch patient. Show a compact developer event log in local demo mode so the team can see received event names.',
+      'Only modify {{APP_FOLDER}}. Add a window message listener for inbound Embedded App Framework context-change events. At the top of the listener, console.log every received message with a label like "[{{APP_SLOT}}] received window message" before filtering so DevTools can prove whether the app received anything. The real patient-change payload can look like { event: "patientContextChanged", updatedPatient: "5" }, so treat updatedPatient as a valid patient identifier in addition to patientId, patientID, patientIdentifier, fhirPatientId, or patient.id. When patient context changes, reset the active prep card, clear detail/review state, and reload {{PATIENT_CONTEXT_PATH}}?updatedPatient=<encoded patient identifier> if a patient identifier is available. Do not reload the plain {{PATIENT_CONTEXT_PATH}} for a patient-change event because it will reuse the original SMART launch patient.',
     expected:
-      "Switching context in Athena resets the sidecar to the correct patient instead of showing stale prep state.",
+      "Switching context in Athena reloads the sidecar to the new patient instead of showing stale prep state.",
     fallback:
-      'If a live context-change event is not available, add a local Simulate context change button in demo mode that dispatches { event: "patientContextChanged", updatedPatient: "5" }.',
+      'If a live context-change event is not available, dispatch { event: "patientContextChanged", updatedPatient: "5" } from DevTools and confirm the app reloads with the updatedPatient query.',
+  },
+  {
+    id: "reopen",
+    title: "Reopen After Patient Change",
+    time: "Extension",
+    outcome: "The app returns at the right moment after the provider manually minimizes it.",
+    prompt:
+      "Only modify {{APP_FOLDER}}. Do not add a programmatic minimize button. In the live demo, the provider manually minimizes the sidecar using Athena chrome, then navigates to another patient. When the patientContextChanged listener reloads a new patient that still has an attention-needed prep gap, send appReopen version 1.0.0 so the sidecar returns with the new patient identity and compact prep state.",
+    expected:
+      "After the provider manually minimizes the app and changes patient, the app reopens only because the new patient has an attention-needed prep gap.",
+    fallback:
+      "Fallback snippet: after the updated patient context fetch succeeds, send appReopen version 1.0.0 and keep the UI in compact mode.",
   },
 ];
 
 const postMessageItems: ReferenceItem[] = [
   {
     method: "appShowBadgePersistent",
-    participantAction: "Flag for review",
-    workshopUse: "Shows a notification badge until the app explicitly clears it.",
+    participantAction: "Automatic attention badge",
+    workshopUse: "Fires on load when business logic finds an active care gap.",
   },
   {
     method: "appResize",
-    participantAction: "Review details",
-    workshopUse: "Moves from compact sidecar view to a wider detail view.",
-  },
-  {
-    method: "appMinimize",
-    participantAction: "Snooze while I update Athena",
-    workshopUse: "Gets out of the provider's way while Athena becomes primary.",
-  },
-  {
-    method: "appReopen",
-    participantAction: "Bring prep back",
-    workshopUse: "Returns the app when the reminder workflow needs attention.",
+    participantAction: "Open or collapse details",
+    workshopUse: "Moves between 400px compact mode and 600px detail mode.",
   },
   {
     method: "appClearBadge",
     participantAction: "Mark reviewed",
     workshopUse: "Resolves the notification state after the gap is handled.",
+  },
+  {
+    method: "appReopen",
+    participantAction: "New patient needs prep",
+    workshopUse: "Returns the app after a provider manually minimizes it and changes patient.",
   },
   {
     method: "patientContextChanged",
@@ -185,7 +168,7 @@ const postMessageItems: ReferenceItem[] = [
 const promptCards = [
   {
     title: "00 Create Slot From Template",
-    summary: "Copy the non-routable template into the assigned app folder.",
+    summary: "Copy the template into the assigned app folder.",
     prompt: workshopSteps[0].prompt,
   },
   {
@@ -194,26 +177,29 @@ const promptCards = [
     prompt: workshopSteps[2].prompt,
   },
   {
-    title: "02 Clinical Wrapper",
+    title: "02 Neutral Visit Prep UI",
     summary: "Turn the patient-context screen into the Visit Prep Sidecar.",
     prompt: workshopSteps[3].prompt,
   },
   {
-    title: "03 PostMessage Helper",
-    summary: "Centralize parent-frame postMessage calls behind a helper.",
-    prompt:
-      "Only modify {{APP_FOLDER}}. Add or refine a small typed helper for Embedded App Launcher postMessages. It should send messages to window.parent with type embeddedAppAPIMessage, method, methodVersion 1.0.0, and optional payload fields such as newWidth. Use this helper for every product action in the workshop.",
+    title: "03 Resize And Collapse",
+    summary: "Use appResize for product-led detail expansion and collapse.",
+    prompt: workshopSteps[4].prompt,
   },
   {
-    title: "04 Badge / Resize / Minimize / Reopen",
-    summary: "Layer the clinical product actions onto postMessage behaviors.",
-    prompt:
-      "Only modify {{APP_FOLDER}}. Add product actions for Flag for review, Review details, Snooze while I update Athena, Bring prep back, and Mark reviewed. Under the hood these should send appShowBadgePersistent, appResize, appMinimize, appReopen, and appClearBadge.",
+    title: "04 Automatic Badge",
+    summary: "Use appShowBadgePersistent and appClearBadge from business logic.",
+    prompt: workshopSteps[5].prompt,
   },
   {
     title: "05 Context Change Listener",
-    summary: "React to inbound Athena context changes after the core build is complete.",
-    prompt: workshopSteps[8].prompt,
+    summary: "React to inbound Athena patient context changes.",
+    prompt: workshopSteps[6].prompt,
+  },
+  {
+    title: "06 Reopen Behavior",
+    summary: "Return the sidecar after the provider manually minimizes and changes patients.",
+    prompt: workshopSteps[7].prompt,
   },
 ];
 
@@ -257,6 +243,10 @@ function personalizePrompt(prompt: string, context: PromptContext) {
     .join(context.templateFolder);
 }
 
+function addStepCommitInstruction(prompt: string, context: PromptContext) {
+  return `${prompt}\n\nWhen finished, commit any tracked changes with a message like "${context.appSlot}: short message".`;
+}
+
 function copyLabel(copiedId: string | null, id: string) {
   return copiedId === id ? "Copied" : "Copy prompt";
 }
@@ -287,12 +277,16 @@ export function App() {
         expected: personalizePrompt(step.expected, promptContext),
         fallback: personalizePrompt(step.fallback, promptContext),
         outcome: personalizePrompt(step.outcome, promptContext),
-        prompt: personalizePrompt(step.prompt, promptContext),
+        prompt: addStepCommitInstruction(personalizePrompt(step.prompt, promptContext), promptContext),
       })),
     [promptContext],
   );
   const personalizedPromptCards = useMemo(
-    () => promptCards.map((card) => ({ ...card, prompt: personalizePrompt(card.prompt, promptContext) })),
+    () =>
+      promptCards.map((card) => ({
+        ...card,
+        prompt: addStepCommitInstruction(personalizePrompt(card.prompt, promptContext), promptContext),
+      })),
     [promptContext],
   );
 
@@ -455,7 +449,15 @@ export function App() {
           <h2 id="setup-heading">Setup</h2>
           <div className="setup-grid">
             <Checklist
-              title="Participant slots"
+              title="Participant prerequisites"
+              items={[
+                "Git account or access to the workshop app-host repository.",
+                "Node installed locally so npm install, npm test, and npm run dev work.",
+                "LLM tool ready: Codex, Claude Code, Cursor, Windsurf, or equivalent.",
+              ]}
+            />
+            <Checklist
+              title="Assigned slot"
               items={[
                 "Use app-001 through app-099 for workshop attendees.",
                 "Use app-101 and above for internal dry runs.",
@@ -463,16 +465,10 @@ export function App() {
               ]}
             />
             <Checklist
-              title="Repo expectations"
+              title="Athena and repo readiness"
               items={[
                 "Clone the app-host repo before the workshop.",
-                "Copy the template into the assigned app folder.",
-                "Pull latest main before pushing changes.",
-              ]}
-            />
-            <Checklist
-              title="Athena readiness"
-              items={[
+                "Pull latest main before creating the assigned app folder.",
                 "Confirm preview access and practice entitlement.",
                 "Confirm the slot client ID is listed in api/_lib/workshop-config.ts.",
                 "Confirm launch, callback, and logout URLs use the assigned app number.",
@@ -623,19 +619,30 @@ function SidecarPreview() {
       <div className="preview-sidecar" aria-label="Embedded sidecar app">
         <div className="sidecar-header">
           <div>
-            <span className="sidecar-app-label">Visit Prep</span>
+            <span className="sidecar-app-label">APP-101</span>
+            <strong className="sidecar-app-title">Visit Prep</strong>
+          </div>
+          <span className="smart-chip">Patient Loaded</span>
+        </div>
+        <div className="preview-patient-banner">
+          <span className="preview-avatar" aria-hidden="true">AR</span>
+          <div>
             <strong className="sidecar-patient-name">Alex Rivers</strong>
             <span>DOB 04/12/1975 · FHIR ID 12345</span>
           </div>
-          <span className="smart-chip">SMART</span>
         </div>
         <div className="gap-card active">
+          <div className="gap-card-head">
+            <span>Active care gap</span>
+            <span className="preview-status-dot" aria-hidden="true" />
+          </div>
           <strong>Vitals review due</strong>
-          <span>Flag for review → badge</span>
+          <span>Last BP is elevated. Review before closing.</span>
+          <span className="mini-action">Open details</span>
         </div>
         <div className="gap-card">
           <strong>Medication reconciliation</strong>
-          <span>Mock prep card</span>
+          <span>Confirm adherence and discontinued medications.</span>
         </div>
       </div>
     </div>
