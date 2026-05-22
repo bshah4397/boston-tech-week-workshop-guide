@@ -1,9 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
 describe("Workshop guide", () => {
+  beforeEach(() => {
+    window.history.replaceState(null, "", "/");
+    window.localStorage.clear();
+  });
+
   it("renders the main guide sections", () => {
     render(<App />);
 
@@ -58,6 +63,51 @@ describe("Workshop guide", () => {
         "npm install",
       ].join("\n"),
     );
+  });
+
+  it("highlights the selected workshop step in the progress rail", async () => {
+    const { container } = render(<App />);
+
+    const localDemoLink = screen.getByRole("link", { name: /02 run the local demo/i });
+    await userEvent.click(localDemoLink);
+
+    expect(localDemoLink).toHaveAttribute("aria-current", "step");
+    expect(localDemoLink).toHaveClass("is-active");
+    expect(container.querySelector("#step-bootstrap")).toHaveClass("is-active");
+  });
+
+  it("marks copied prompts in the progress rail", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: { writeText },
+    });
+
+    render(<App />);
+    await userEvent.click(screen.getAllByRole("button", { name: /copy prompt/i })[0]);
+
+    const startHereLink = screen.getByRole("link", { name: /00 start here/i });
+    expect(startHereLink).toHaveClass("is-copied");
+    expect(startHereLink).toHaveAttribute("aria-label", expect.stringMatching(/start here.*copied/i));
+  });
+
+  it("selects whichever step prompt was copied most recently", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: { writeText },
+    });
+    const { container } = render(<App />);
+
+    const copyButtons = screen.getAllByRole("button", { name: /copy prompt/i });
+    await userEvent.click(copyButtons[0]);
+    await userEvent.click(copyButtons[1]);
+
+    expect(container.querySelector("#step-start-here")).not.toHaveClass("is-active");
+    expect(container.querySelector("#step-setup")).toHaveClass("is-active");
+    expect(screen.getByRole("link", { name: /01 create your slot from template copied/i })).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
+    expect(window.location.hash).toBe("#step-setup");
   });
 
   it("applies the assigned app slot to workshop prompts", async () => {

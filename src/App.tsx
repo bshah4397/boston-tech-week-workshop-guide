@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   Check,
   Clipboard,
@@ -37,6 +37,7 @@ type PromptCard = {
 
 const workshopAppRepoUrl = "git@github.com:bshah4397/boston-tech-week-workshop-app.git";
 const workshopAppRepoName = "boston-tech-week-workshop-app";
+const copiedStepsStorageKey = "boston-tech-week-workshop-guide-copied-steps";
 
 const navigation = [
   { href: "#overview", label: "Home / Overview" },
@@ -290,8 +291,29 @@ function copyLabel(copiedId: string | null, id: string) {
   return copiedId === id ? "Copied" : "Copy prompt";
 }
 
+function activeStepFromHash() {
+  const prefix = "#step-";
+  if (!window.location.hash.startsWith(prefix)) {
+    return "start-here";
+  }
+
+  return window.location.hash.slice(prefix.length);
+}
+
+function loadCopiedStepIds() {
+  try {
+    const saved = window.localStorage.getItem(copiedStepsStorageKey);
+    const parsed = saved ? JSON.parse(saved) : [];
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
 export function App() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedStepIds, setCopiedStepIds] = useState<string[]>(loadCopiedStepIds);
+  const [activeStepId, setActiveStepId] = useState(activeStepFromHash);
   const [slotDraft, setSlotDraft] = useState("007");
   const [assignedSlot, setAssignedSlot] = useState("app-007");
   const [slotError, setSlotError] = useState<string | null>(null);
@@ -338,9 +360,63 @@ export function App() {
     [promptContext],
   );
 
-  async function handleCopy(id: string, text: string) {
+  useEffect(() => {
+    window.localStorage.setItem(copiedStepsStorageKey, JSON.stringify(copiedStepIds));
+  }, [copiedStepIds]);
+
+  useEffect(() => {
+    function handleHashChange() {
+      setActiveStepId(activeStepFromHash());
+    }
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  useEffect(() => {
+    if (!("IntersectionObserver" in window)) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const current = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (current?.target.id.startsWith("step-")) {
+          setActiveStepId(current.target.id.slice("step-".length));
+        }
+      },
+      { rootMargin: "-20% 0px -65% 0px", threshold: [0.2, 0.5, 0.8] },
+    );
+
+    personalizedSteps.forEach((step) => {
+      const element = document.getElementById(`step-${step.id}`);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [personalizedSteps]);
+
+  function selectStep(stepId: string, syncHash = false) {
+    setActiveStepId(stepId);
+
+    if (syncHash) {
+      const nextHash = `#step-${stepId}`;
+      if (window.location.hash !== nextHash) {
+        window.history.replaceState(null, "", nextHash);
+      }
+    }
+  }
+
+  async function handleCopy(id: string, text: string, stepId = id) {
+    selectStep(stepId, true);
     await navigator.clipboard.writeText(text);
     setCopiedId(id);
+    setCopiedStepIds((current) => (current.includes(stepId) ? current : [...current, stepId]));
     window.setTimeout(() => setCopiedId((current) => (current === id ? null : current)), 1800);
   }
 
@@ -441,17 +517,37 @@ export function App() {
 
           <div className="workshop-layout">
             <aside className="progress-panel" aria-label="Build progress">
-              {personalizedSteps.map((step, index) => (
-                <a key={step.id} href={`#step-${step.id}`}>
-                  <span>{String(index).padStart(2, "0")}</span>
-                  {step.title}
-                </a>
-              ))}
+              {personalizedSteps.map((step, index) => {
+                const isActive = activeStepId === step.id;
+                const isCopied = copiedStepIds.includes(step.id);
+                const linkClassName = [isActive ? "is-active" : "", isCopied ? "is-copied" : ""]
+                  .filter(Boolean)
+                  .join(" ");
+
+                return (
+                  <a
+                    aria-current={isActive ? "step" : undefined}
+                    aria-label={`${String(index).padStart(2, "0")} ${step.title}${isCopied ? " copied" : ""}`}
+                    className={linkClassName}
+                    key={step.id}
+                    href={`#step-${step.id}`}
+                    onClick={() => selectStep(step.id)}
+                  >
+                    <span className="progress-step-index">{String(index).padStart(2, "0")}</span>
+                    <span className="progress-step-title">{step.title}</span>
+                    {isCopied ? <Check aria-hidden="true" className="progress-step-check" size={15} /> : null}
+                  </a>
+                );
+              })}
             </aside>
 
             <div className="step-list">
               {personalizedSteps.map((step, index) => (
-                <article id={`step-${step.id}`} key={step.id} className="step-card">
+                <article
+                  id={`step-${step.id}`}
+                  key={step.id}
+                  className={`step-card${activeStepId === step.id ? " is-active" : ""}`}
+                >
                   <div className="step-meta">
                     <span>Step {index}</span>
                     <span>
@@ -467,7 +563,7 @@ export function App() {
                       Prompt
                     </div>
                     <pre>{step.prompt}</pre>
-                    <button type="button" onClick={() => handleCopy(step.id, step.prompt)}>
+                    <button type="button" onClick={() => handleCopy(step.id, step.prompt, step.id)}>
                       {copiedId === step.id ? (
                         <Check aria-hidden="true" size={16} />
                       ) : (
@@ -537,7 +633,7 @@ export function App() {
                   <h3>{card.title}</h3>
                   <p>{card.summary}</p>
                   <pre>{card.prompt}</pre>
-                  <button type="button" onClick={() => handleCopy(id, card.prompt)}>
+                  <button type="button" onClick={() => handleCopy(id, card.prompt, card.stepId)}>
                     {copiedId === id ? <Check aria-hidden="true" size={16} /> : <Clipboard aria-hidden="true" size={16} />}
                     {copyLabel(copiedId, id)}
                   </button>
