@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 type WorkshopStep = {
+  includeCommitInstruction?: boolean;
   id: string;
   title: string;
   time: string;
@@ -28,6 +29,15 @@ type ReferenceItem = {
   workshopUse: string;
 };
 
+type PromptCard = {
+  stepId: string;
+  summary: string;
+  title: string;
+};
+
+const workshopAppRepoUrl = "git@github.com:bshah4397/boston-tech-week-workshop-app.git";
+const workshopAppRepoName = "boston-tech-week-workshop-app";
+
 const navigation = [
   { href: "#overview", label: "Home / Overview" },
   { href: "#live", label: "Live Workshop" },
@@ -40,12 +50,25 @@ const navigation = [
 
 const workshopSteps: WorkshopStep[] = [
   {
+    id: "start-here",
+    includeCommitInstruction: false,
+    title: "Start Here",
+    time: "Before the clock",
+    outcome: "Your boston-tech-week-workshop-app workspace is cloned, installed, and ready for the first build prompt.",
+    prompt:
+      "Clone the boston-tech-week-workshop-app repo and get ready for the build.\n\nRun:\n\ngit clone {{WORKSHOP_APP_REPO_URL}}\ncd {{WORKSHOP_APP_REPO_NAME}}\nnpm install\n\nConfirm you are in the {{WORKSHOP_APP_REPO_NAME}} working directory. Do not create your app folder yet, do not edit files yet, and wait for the next workshop prompt.",
+    expected:
+      "You are inside the {{WORKSHOP_APP_REPO_NAME}} folder, dependencies are installed, and the workspace is ready for the first build step.",
+    fallback:
+      "If cloning or installing fails, ask a facilitator for the pre-cloned boston-tech-week-workshop-app folder before continuing. Do not start from a different repo.",
+  },
+  {
     id: "setup",
     title: "Create Your Slot From Template",
     time: "5 min",
     outcome: "Your assigned app folder exists and no other slot was touched.",
     prompt:
-      'Your assigned slot is {{APP_SLOT}}. Work only in the app-host repo. Copy {{TEMPLATE_FOLDER}} into {{APP_FOLDER}}. In {{APP_FOLDER}}/index.tsx, change the slot-types import from ../slot-types to ../../slot-types, set slotConfig.slotId to "{{APP_SLOT}}", set title to "Visit Prep Sidecar", and set description to "Workshop participant slot". Do not edit root routing, package files, Vercel config, {{TEMPLATE_FOLDER}}, or any other app folder.',
+      'Your assigned slot is {{APP_SLOT}}. Work only in the boston-tech-week-workshop-app repo. Copy {{TEMPLATE_FOLDER}} into {{APP_FOLDER}}. In {{APP_FOLDER}}/index.tsx, change the slot-types import from ../slot-types to ../../slot-types, set slotConfig.slotId to "{{APP_SLOT}}", set title to "Visit Prep Sidecar", and set description to "Workshop participant slot". Do not edit root routing, package files, Vercel config, {{TEMPLATE_FOLDER}}, or any other app folder.',
     expected:
       "The new slot folder has index.tsx and post-message.ts, and the exported slotConfig uses your assigned app number.",
     fallback:
@@ -57,7 +80,7 @@ const workshopSteps: WorkshopStep[] = [
     time: "5 min",
     outcome: "The copied template is routable and visible on localhost.",
     prompt:
-      "Only modify {{APP_FOLDER}}. Start the local app-host dev server on localhost, then verify the slot works at {{APP_BASE_PATH}}/demo and {{LOGOUT_PATH}}. Confirm the Athena registration URLs for this slot are {{LAUNCH_PATH}} for launch, {{CALLBACK_PATH}} for post-login redirect, and {{LOGOUT_PATH}} for post-logout redirect. If the app host dashboard does not list {{APP_SLOT}}, fix only import paths or slotConfig inside {{APP_FOLDER}}. Do not change shared slot discovery.",
+      "Only modify {{APP_FOLDER}}. Start the local boston-tech-week-workshop-app dev server on localhost, then verify the slot works at {{APP_BASE_PATH}}/demo and {{LOGOUT_PATH}}. Confirm the Athena registration URLs for this slot are {{LAUNCH_PATH}} for launch, {{CALLBACK_PATH}} for post-login redirect, and {{LOGOUT_PATH}} for post-logout redirect. If the boston-tech-week-workshop-app dashboard does not list {{APP_SLOT}}, fix only import paths or slotConfig inside {{APP_FOLDER}}. Do not change shared slot discovery.",
     expected:
       "The host dashboard lists your slot, local demo mode renders, and the three Athena registration URLs are slot-specific.",
     fallback:
@@ -165,41 +188,46 @@ const postMessageItems: ReferenceItem[] = [
   },
 ];
 
-const promptCards = [
+const promptCards: PromptCard[] = [
   {
-    title: "00 Create Slot From Template",
+    stepId: "start-here",
+    title: "00 Open The Workshop Repo",
+    summary: "Clone the boston-tech-week-workshop-app repo and prepare the local working directory.",
+  },
+  {
+    stepId: "setup",
+    title: "01 Create Slot From Template",
     summary: "Copy the template into the assigned app folder.",
-    prompt: workshopSteps[0].prompt,
   },
   {
-    title: "01 SMART Patient Context",
+    stepId: "smart",
+    title: "02 SMART Patient Context",
     summary: "Prepare the copied slot for real Athena SMART launch context.",
-    prompt: workshopSteps[2].prompt,
   },
   {
-    title: "02 Neutral Visit Prep UI",
+    stepId: "clinical",
+    title: "03 Neutral Visit Prep UI",
     summary: "Turn the patient-context screen into the Visit Prep Sidecar.",
-    prompt: workshopSteps[3].prompt,
   },
   {
-    title: "03 Resize And Collapse",
+    stepId: "resize",
+    title: "04 Resize And Collapse",
     summary: "Use appResize for product-led detail expansion and collapse.",
-    prompt: workshopSteps[4].prompt,
   },
   {
-    title: "04 Automatic Badge",
+    stepId: "badge",
+    title: "05 Automatic Badge",
     summary: "Use appShowBadgePersistent and appClearBadge from business logic.",
-    prompt: workshopSteps[5].prompt,
   },
   {
-    title: "05 Context Change Listener",
+    stepId: "context",
+    title: "06 Context Change Listener",
     summary: "React to inbound Athena patient context changes.",
-    prompt: workshopSteps[6].prompt,
   },
   {
-    title: "06 Reopen Behavior",
+    stepId: "reopen",
+    title: "07 Reopen Behavior",
     summary: "Return the sidecar after the provider manually minimizes and changes patients.",
-    prompt: workshopSteps[7].prompt,
   },
 ];
 
@@ -221,10 +249,16 @@ type PromptContext = {
   logoutPath: string;
   patientContextPath: string;
   templateFolder: string;
+  workshopAppRepoName: string;
+  workshopAppRepoUrl: string;
 };
 
 function personalizePrompt(prompt: string, context: PromptContext) {
   return prompt
+    .split("{{WORKSHOP_APP_REPO_URL}}")
+    .join(context.workshopAppRepoUrl)
+    .split("{{WORKSHOP_APP_REPO_NAME}}")
+    .join(context.workshopAppRepoName)
     .split("{{APP_FOLDER}}")
     .join(context.appFolder)
     .split("{{APP_SLOT}}")
@@ -247,6 +281,11 @@ function addStepCommitInstruction(prompt: string, context: PromptContext) {
   return `${prompt}\n\nWhen finished, run git status. If there are changes, commit them with a message like "${context.appSlot}: short message", then push to main with git push origin main.`;
 }
 
+function buildStepPrompt(step: WorkshopStep, context: PromptContext) {
+  const prompt = personalizePrompt(step.prompt, context);
+  return step.includeCommitInstruction === false ? prompt : addStepCommitInstruction(prompt, context);
+}
+
 function copyLabel(copiedId: string | null, id: string) {
   return copiedId === id ? "Copied" : "Copy prompt";
 }
@@ -266,6 +305,8 @@ export function App() {
       logoutPath: `/${assignedSlot}/logout-complete`,
       patientContextPath: `/api/apps/${assignedSlot}/patient-context`,
       templateFolder: "src/app-template",
+      workshopAppRepoName,
+      workshopAppRepoUrl,
     }),
     [assignedSlot],
   );
@@ -277,16 +318,23 @@ export function App() {
         expected: personalizePrompt(step.expected, promptContext),
         fallback: personalizePrompt(step.fallback, promptContext),
         outcome: personalizePrompt(step.outcome, promptContext),
-        prompt: addStepCommitInstruction(personalizePrompt(step.prompt, promptContext), promptContext),
+        prompt: buildStepPrompt(step, promptContext),
       })),
     [promptContext],
   );
   const personalizedPromptCards = useMemo(
     () =>
-      promptCards.map((card) => ({
-        ...card,
-        prompt: addStepCommitInstruction(personalizePrompt(card.prompt, promptContext), promptContext),
-      })),
+      promptCards.map((card) => {
+        const step = workshopSteps.find((candidate) => candidate.id === card.stepId);
+        if (!step) {
+          throw new Error(`Prompt card references missing workshop step: ${card.stepId}`);
+        }
+
+        return {
+          ...card,
+          prompt: buildStepPrompt(step, promptContext),
+        };
+      }),
     [promptContext],
   );
 
@@ -337,7 +385,7 @@ export function App() {
               provider workspace.
             </p>
             <div className="hero-actions">
-              <a className="primary-action" href="#live">
+              <a className="primary-action" href="#step-start-here">
                 Start guided build
                 <ExternalLink aria-hidden="true" size={17} />
               </a>
@@ -395,7 +443,7 @@ export function App() {
             <aside className="progress-panel" aria-label="Build progress">
               {personalizedSteps.map((step, index) => (
                 <a key={step.id} href={`#step-${step.id}`}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <span>{String(index).padStart(2, "0")}</span>
                   {step.title}
                 </a>
               ))}
@@ -405,7 +453,7 @@ export function App() {
               {personalizedSteps.map((step, index) => (
                 <article id={`step-${step.id}`} key={step.id} className="step-card">
                   <div className="step-meta">
-                    <span>Step {index + 1}</span>
+                    <span>Step {index}</span>
                     <span>
                       <Clock3 aria-hidden="true" size={14} />
                       {step.time}
@@ -418,7 +466,7 @@ export function App() {
                       <TerminalSquare aria-hidden="true" size={17} />
                       Prompt
                     </div>
-                    <p>{step.prompt}</p>
+                    <pre>{step.prompt}</pre>
                     <button type="button" onClick={() => handleCopy(step.id, step.prompt)}>
                       {copiedId === step.id ? (
                         <Check aria-hidden="true" size={16} />
@@ -451,7 +499,7 @@ export function App() {
             <Checklist
               title="Participant prerequisites"
               items={[
-                "Git account or access to the workshop app-host repository.",
+                "Git account or access to the boston-tech-week-workshop-app repository.",
                 "Node installed locally so npm install, npm test, and npm run dev work.",
                 "LLM tool ready: Codex, Claude Code, Cursor, Windsurf, or equivalent.",
               ]}
@@ -467,7 +515,7 @@ export function App() {
             <Checklist
               title="Athena and repo readiness"
               items={[
-                "Clone the app-host repo before the workshop.",
+                "Clone the boston-tech-week-workshop-app repo before the workshop.",
                 "Pull latest main before creating the assigned app folder.",
                 "Confirm preview access and practice entitlement.",
                 "Confirm the slot client ID is listed in api/_lib/workshop-config.ts.",

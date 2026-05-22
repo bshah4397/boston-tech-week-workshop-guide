@@ -28,6 +28,38 @@ describe("Workshop guide", () => {
     expect(screen.getAllByText(/provider manually minimizes/i).length).toBeGreaterThan(0);
   });
 
+  it("starts participants with a step zero repo onboarding prompt", () => {
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: /start here/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /start guided build/i })).toHaveAttribute("href", "#step-start-here");
+    expect(screen.getByText("00")).toBeInTheDocument();
+    expect(screen.getByText(/open the workshop repo/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/git clone git@github\.com:bshah4397\/boston-tech-week-workshop-app\.git/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/cd boston-tech-week-workshop-app/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/boston-tech-week-workshop-app working directory/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/npm install/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/do not create your app folder yet/i).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/open or initialize your coding agent/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/open your coding agent/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/app-host/i)).not.toBeInTheDocument();
+  });
+
+  it("renders live prompts with preserved command line breaks", () => {
+    const { container } = render(<App />);
+
+    const startHerePrompt = container.querySelector("#step-start-here .prompt-block pre");
+
+    expect(startHerePrompt).not.toBeNull();
+    expect(startHerePrompt?.textContent ?? "").toContain(
+      [
+        "git clone git@github.com:bshah4397/boston-tech-week-workshop-app.git",
+        "cd boston-tech-week-workshop-app",
+        "npm install",
+      ].join("\n"),
+    );
+  });
+
   it("applies the assigned app slot to workshop prompts", async () => {
     render(<App />);
 
@@ -43,11 +75,12 @@ describe("Workshop guide", () => {
     expect(screen.getAllByText(/\/app-101\/logout-complete/i).length).toBeGreaterThan(0);
   });
 
-  it("includes the app-host template workflow in the prompt library", () => {
+  it("includes the workshop app template workflow in the prompt library", () => {
     render(<App />);
 
     expect(screen.getAllByText(/src\/app-template/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/copy the template/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/boston-tech-week-workshop-app/i).length).toBeGreaterThan(0);
   });
 
   it("documents prerequisites and per-step commit expectations", () => {
@@ -55,7 +88,7 @@ describe("Workshop guide", () => {
 
     expect(screen.getByText(/git account or access/i)).toBeInTheDocument();
     expect(screen.getByText(/node installed/i)).toBeInTheDocument();
-    expect(screen.getByText(/codex, claude code, cursor, windsurf/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/codex, claude code, cursor, windsurf/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/commit them with a message/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/git push origin main/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/app-007: short message/i).length).toBeGreaterThan(0);
@@ -104,7 +137,9 @@ describe("Workshop guide", () => {
     render(<App />);
     await userEvent.click(screen.getAllByRole("button", { name: /copy prompt/i })[0]);
 
-    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("src/apps/app-007"));
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining("git clone git@github.com:bshah4397/boston-tech-week-workshop-app.git"));
+    expect(writeText).toHaveBeenCalledWith(expect.not.stringContaining("open or initialize your coding agent"));
+    expect(writeText).toHaveBeenCalledWith(expect.not.stringContaining("commit them with a message"));
     expect(screen.getByRole("button", { name: /^copied$/i })).toBeInTheDocument();
   });
 });
