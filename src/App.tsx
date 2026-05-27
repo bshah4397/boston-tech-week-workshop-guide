@@ -59,7 +59,7 @@ const workshopSteps: WorkshopStep[] = [
     includeCommitInstruction: false,
     title: "Start Here",
     time: "Before the clock",
-    outcome: "Your boston-tech-week-workshop-app workspace will cloned, installed, and ready for the first build prompt.",
+    outcome: "Your boston-tech-week-workshop-app workspace will be cloned, installed, and ready for the first build prompt.",
     prompt:
       "Clone the boston-tech-week-workshop-app repo and get ready for the build.\n\nRun:\n\ngit clone {{WORKSHOP_APP_REPO_URL}}\ncd {{WORKSHOP_APP_REPO_NAME}}\nnpm install\n\nConfirm you are in the {{WORKSHOP_APP_REPO_NAME}} working directory. Do not create your app folder yet, do not edit files yet, and wait for the next workshop prompt.",
     expected:
