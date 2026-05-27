@@ -21,6 +21,10 @@ type WorkshopStep = {
   prompt: string;
   expected: string;
   fallback: string;
+  whatYouAsked?: string;
+  whatHappened?: string;
+  whatHappenedRows?: { label: string; detail: string }[];
+  keyLesson?: string;
 };
 
 type ReferenceItem = {
@@ -55,29 +59,38 @@ const workshopSteps: WorkshopStep[] = [
     includeCommitInstruction: false,
     title: "Start Here",
     time: "Before the clock",
-    outcome: "Your boston-tech-week-workshop-app workspace is cloned, installed, and ready for the first build prompt.",
+    outcome: "Your boston-tech-week-workshop-app workspace will cloned, installed, and ready for the first build prompt.",
     prompt:
       "Clone the boston-tech-week-workshop-app repo and get ready for the build.\n\nRun:\n\ngit clone {{WORKSHOP_APP_REPO_URL}}\ncd {{WORKSHOP_APP_REPO_NAME}}\nnpm install\n\nConfirm you are in the {{WORKSHOP_APP_REPO_NAME}} working directory. Do not create your app folder yet, do not edit files yet, and wait for the next workshop prompt.",
     expected:
       "You are inside the {{WORKSHOP_APP_REPO_NAME}} folder, dependencies are installed, and the workspace is ready for the first build step.",
     fallback:
       "If cloning or installing fails, ask a facilitator for the pre-cloned boston-tech-week-workshop-app folder before continuing. Do not start from a different repo.",
+    whatYouAsked: "Download the shared workshop codebase from GitHub onto the local machine.",
+    whatHappened:
+      "Your Coding Agent ran git clone to copy the entire project, confirmed all the files were there, and noted the structure — a React frontend built with Vite and a backend API folder. From this point on, all work happened on that local copy.",
   },
   {
     id: "setup",
-    title: "Create Your Slot From Template",
+    title: "Create your assigned app slot",
     time: "5 min",
-    outcome: "Your assigned app folder exists and no other slot was touched.",
+    outcome: "Create your app",
     prompt:
       'Your assigned slot is {{APP_SLOT}}. Work only in the boston-tech-week-workshop-app repo. Copy {{TEMPLATE_FOLDER}} into {{APP_FOLDER}}. In {{APP_FOLDER}}/index.tsx, change the slot-types import from ../slot-types to ../../slot-types, set slotConfig.slotId to "{{APP_SLOT}}", set title to "Visit Prep Sidecar", and set description to "Workshop participant slot". Do not edit root routing, package files, Vercel config, {{TEMPLATE_FOLDER}}, or any other app folder.',
     expected:
       "The new slot folder has index.tsx and post-message.ts, and the exported slotConfig uses your assigned app number.",
     fallback:
       "If copying fails, ask a facilitator to create the folder, then continue with only the metadata edits in your assigned slot.",
+    whatYouAsked:
+      "Take the provided slot template (src/app-template) and create a personalized copy of it at src/apps/app-xxx. Update three values inside it: the slot ID, the title, and the description. Also fix an import path that would break because the file moved to a different folder depth.",
+    whatHappened:
+      "Your Coding Agent copied the template folder, edited the new file with each participant's assigned values, and committed and pushed.",
+    keyLesson:
+      "The host app auto-discovers slots using a glob pattern — any folder matching apps/app-*/index.tsx is automatically registered. No manual routing or config file needed.",
   },
   {
     id: "bootstrap",
-    title: "Run The Local Demo",
+    title: "Verify the slot is live and check the registration URLs",
     time: "5 min",
     outcome: "The copied template is routable and visible on localhost.",
     prompt:
@@ -86,10 +99,16 @@ const workshopSteps: WorkshopStep[] = [
       "The host dashboard lists your slot, local demo mode renders, and the three Athena registration URLs are slot-specific.",
     fallback:
       "If you are stuck, open {{APP_BASE_PATH}}/demo directly. A facilitator can confirm whether the slot was copied correctly.",
+    whatYouAsked:
+      "Start the local dev server, confirm the app works at the expected routes, and verify the three URLs that would be entered into Athena's app registration form.",
+    whatHappened:
+      "Your Coding Agent started the Vite server, used a headless browser to screenshot several pages, and confirmed the slot was discoverable on the dashboard, all routes rendered correctly, and the three registration URLs were properly scoped to the participant's assigned slot number.",
+    keyLesson:
+      "These three URLs are what a real Athena developer would copy into the Embedded App Framework registration portal to wire up SMART on FHIR authentication — the launch URL, the post-login redirect, and the post-logout redirect — all scoped to your assigned app number.",
   },
   {
     id: "smart",
-    title: "Enable SMART Patient Context",
+    title: "Turn on real patient context loading",
     time: "8 min",
     outcome: "The app is ready to use real Athena launch context instead of only demo data.",
     prompt:
@@ -98,10 +117,23 @@ const workshopSteps: WorkshopStep[] = [
       "The sidecar still works locally, and the real launch path has clear patient-context loading states without exposing sensitive OAuth material.",
     fallback:
       "If real SMART wiring is not ready in your environment, set smartPatientContext back to false, keep demo patient data, and continue with the staged UI toggles.",
+    whatYouAsked:
+      "Flip the smartPatientContext feature flag to true. This switches the app from always showing dummy data to actually calling the slot's own API endpoint to fetch who the current patient is.",
+    whatHappened: "One line changed (false → true). Your Coding Agent verified all six UI states:",
+    whatHappenedRows: [
+      { label: "Setup Required", detail: "App opened but Athena hasn't launched it yet." },
+      { label: "Launch In Progress", detail: "Athena sent an iss parameter to start SMART login." },
+      { label: "Callback Received", detail: "Login completed, waiting to load patient context." },
+      { label: "Patient Context Loading", detail: "Fetching patient data from the API." },
+      { label: "Patient Load Failed", detail: "API returned an error or couldn't be reached." },
+      { label: "Local Demo", detail: "Provider navigated to /demo to bypass auth." },
+    ],
+    keyLesson:
+      "Every real embedded app needs to handle all these states gracefully. A user could hit any of them depending on network conditions, session state, or how they opened the app.",
   },
   {
     id: "clinical",
-    title: "Build Neutral Visit Prep UI",
+    title: "Show basic Visit Prep cards",
     time: "7 min",
     outcome: "The app feels like a clinical product, not a hello-world demo.",
     prompt:
@@ -110,6 +142,12 @@ const workshopSteps: WorkshopStep[] = [
       "At 400px width, the sidecar shows patient identity and two neutral prep cards without generic demo buttons.",
     fallback:
       "If the cards are missing, check WORKSHOP_FEATURES.visitPrepCards first before changing JSX.",
+    whatYouAsked:
+      "Flip visitPrepCards to true. This replaces the placeholder text with the actual mock prep card layout.",
+    whatHappened:
+      "One line changed. Two neutral prep cards appeared — Vitals review due and Medication reconciliation. No badges, expand buttons, or highlighting yet — just the clean card layout. Your Coding Agent also confirmed the Patient Load Failed state was unaffected, since the flag only matters once patient data is loaded.",
+    keyLesson:
+      "Feature flags let you progressively reveal UI without shipping broken half-finished features.",
   },
   {
     id: "resize",
@@ -122,6 +160,12 @@ const workshopSteps: WorkshopStep[] = [
       "The sidecar expands from compact prep view to an 800px detail view, then collapses back to 400px from the detail panel.",
     fallback:
       "Fallback snippets: send appResize with newWidth set to 800 for Open details, and appResize with newWidth set to 400 for Collapse details.",
+    whatYouAsked:
+      "Flip resizeDetails to true. This activates the Open details button on the active care gap card, which expands the sidecar to show a full review panel with rationale and next steps. Collapse details shrinks it back.",
+    whatHappened:
+      "One line changed. Clicking Open details sent appResize with newWidth 800 and methodVersion 1.0.0 — the review panel appeared with the care gap rationale and checklist. Clicking Collapse details sent appResize with newWidth 400 and returned to the compact card view.",
+    keyLesson:
+      "The sidecar can't resize itself — it has to ask the Athena chrome to do it by sending a structured postMessage to the parent frame. The methodVersion field is how Athena knows which message schema to expect.",
   },
   {
     id: "badge",
@@ -134,6 +178,12 @@ const workshopSteps: WorkshopStep[] = [
       "Opening the app with an active vitals gap shows an Athena badge automatically; marking reviewed clears the badge and returns to compact mode.",
     fallback:
       "If the badge does not fire, check WORKSHOP_FEATURES.automaticBadge and the local sendEmbeddedAppMessage helper before changing UI.",
+    whatYouAsked:
+      "Flip automaticBadge to true. Instead of a manual button, the app should automatically signal Athena to show a persistent notification badge on the sidecar tab whenever an active care gap is present.",
+    whatHappened:
+      "One line changed. On load, appShowBadgePersistent v1.0.0 was sent automatically. The Vitals review due card gained a warm background highlight, an ACTIVE CARE GAP label, and a small red dot. Clicking Mark reviewed in the detail view sent appClearBadge v1.0.0 followed by appResize with newWidth 400, and the card switched to a Reviewed state.",
+    keyLesson:
+      "The badge isn't a visual element inside your app — it lives in Athena's chrome (the app dock). Your app sends a message to request it, and sends another to clear it. The app itself is responsible for knowing when the clinical context warrants a badge.",
   },
   {
     id: "context",
@@ -146,6 +196,12 @@ const workshopSteps: WorkshopStep[] = [
       "Switching context in Athena reloads the sidecar to the new patient instead of showing stale prep state.",
     fallback:
       'If a live context-change event is not available, dispatch { event: "patientContextChanged", updatedPatient: "5" } from DevTools and confirm the app reloads with the updatedPatient query.',
+    whatYouAsked:
+      "Flip patientContextListener to true. This activates a window message listener that watches for events from the Athena framework signaling that the provider has navigated to a different patient. The app should reset its state and reload patient data for the new patient using the updatedPatient identifier from the event.",
+    whatHappened:
+      'One line changed. The listener logs every incoming message first before any filtering, with the prefix [app-xxx] received window message. The payload { event: "patientContextChanged", updatedPatient: "5" } was correctly parsed — the app fetched /api/apps/app-xxx/patient-context?updatedPatient=5, not the plain endpoint, and reset detail and review state immediately.',
+    keyLesson:
+      "In real Athena deployments, providers often have multiple patients open in different chart tabs. Your app must respond to context switches in real time and use the updatedPatient identifier — not the original SMART token — because those are different patients in different sessions.",
   },
   {
     id: "reopen",
@@ -158,6 +214,12 @@ const workshopSteps: WorkshopStep[] = [
       "After the provider manually minimizes the app and changes patient, the app reopens only because the new patient has an attention-needed prep gap.",
     fallback:
       "Fallback snippet: after the updated patient context fetch succeeds, send appReopen version 1.0.0 and keep the UI in compact mode.",
+    whatYouAsked:
+      "Flip reopenAfterPatientChange to true. If a provider manually minimizes the sidecar and navigates to a new patient who also has an active care gap, the app should automatically re-open itself so the provider doesn't miss the alert.",
+    whatHappened:
+      "One line changed. After a simulated successful patient reload, appReopen v1.0.0 fired automatically, followed by a new appShowBadgePersistent for the new patient. The patient banner updated to show the new identity. The appReopen only fires when the new patient actually has an active care gap — it does not re-open for a routine patient.",
+    keyLesson:
+      "This is the final piece of the proactive UX story: the badge draws attention → the provider opens the sidecar → reviews the gap → marks it reviewed → the badge clears. If they minimize and move to another patient with a gap, the cycle starts again automatically. The sidecar is doing clinical triage work in the background.",
   },
 ];
 
@@ -582,6 +644,42 @@ export function App() {
                       <p>{step.fallback}</p>
                     </div>
                   </div>
+                  {(step.whatYouAsked || step.whatHappened || step.keyLesson) && (
+                    <div className="step-narrative">
+                      {step.whatYouAsked && (
+                        <div className="narrative-item">
+                          <h4>What you asked</h4>
+                          <p>{step.whatYouAsked}</p>
+                        </div>
+                      )}
+                      {(step.whatHappened || step.whatHappenedRows) && (
+                        <div className="narrative-item">
+                          <h4>What happened</h4>
+                          {step.whatHappened && <p>{step.whatHappened}</p>}
+                          {step.whatHappenedRows && (
+                            <div className="narrative-table" role="table" aria-label="UI states">
+                              <div className="narrative-table-head" role="row">
+                                <div role="columnheader">State</div>
+                                <div role="columnheader">What triggers it</div>
+                              </div>
+                              {step.whatHappenedRows.map((row) => (
+                                <div className="narrative-table-row" role="row" key={row.label}>
+                                  <div role="cell">{row.label}</div>
+                                  <div role="cell">{row.detail}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {step.keyLesson && (
+                        <div className="narrative-item narrative-lesson">
+                          <h4>The key lesson</h4>
+                          <p>{step.keyLesson}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </article>
               ))}
             </div>
