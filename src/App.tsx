@@ -744,6 +744,16 @@ export function App() {
         <section id="postmessage" className="page-section" aria-labelledby="postmessage-heading">
           <div className="section-kicker">Framework behavior</div>
           <h2 id="postmessage-heading">PostMessage Reference</h2>
+          <div className="reference-note">
+            <div>
+              <h3>Official embedded apps documentation</h3>
+              <p>This table highlights the postMessage methods used in the workshop. Use the official guide for the full embedded app contract.</p>
+            </div>
+            <a href="https://docs.athenahealth.com/api/guides/embedded-apps" target="_blank" rel="noreferrer">
+              athenaHealth docs
+              <ExternalLink aria-hidden="true" size={15} />
+            </a>
+          </div>
           <div className="reference-table" role="table" aria-label="PostMessage workshop mapping">
             <div className="reference-row reference-head" role="row">
               <div role="columnheader">Method</div>

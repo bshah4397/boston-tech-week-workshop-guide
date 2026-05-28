@@ -155,6 +155,16 @@ describe("Workshop guide", () => {
     expect(screen.queryByText(/snooze while i update athena action/i)).not.toBeInTheDocument();
   });
 
+  it("links the postMessage reference to the official embedded apps documentation", () => {
+    render(<App />);
+
+    const officialDocsLink = screen.getByRole("link", { name: /athenahealth docs/i });
+
+    expect(officialDocsLink).toHaveAttribute("href", "https://docs.athenahealth.com/api/guides/embedded-apps");
+    expect(officialDocsLink).toHaveAttribute("target", "_blank");
+    expect(officialDocsLink).toHaveAttribute("rel", "noreferrer");
+  });
+
   it("documents the real updatedPatient context-change payload", () => {
     render(<App />);
 
