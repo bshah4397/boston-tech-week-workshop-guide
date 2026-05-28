@@ -634,16 +634,6 @@ export function App() {
                       {copyLabel(copiedId, step.id)}
                     </button>
                   </div>
-                  <div className="step-support">
-                    <div>
-                      <h4>Expected result</h4>
-                      <p>{step.expected}</p>
-                    </div>
-                    <div>
-                      <h4>Fallback snippet</h4>
-                      <p>{step.fallback}</p>
-                    </div>
-                  </div>
                   {(step.whatYouAsked || step.whatHappened || step.keyLesson) && (
                     <div className="step-narrative">
                       {step.whatYouAsked && (
@@ -680,6 +670,16 @@ export function App() {
                       )}
                     </div>
                   )}
+                  <div className="step-support">
+                    <div>
+                      <h4>Expected result</h4>
+                      <p>{step.expected}</p>
+                    </div>
+                    <div>
+                      <h4>Fallback snippet</h4>
+                      <p>{step.fallback}</p>
+                    </div>
+                  </div>
                 </article>
               ))}
             </div>

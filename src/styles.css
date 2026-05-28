@@ -855,10 +855,12 @@ p {
 }
 
 .step-support {
+  border-top: 1px solid #dbe5ef;
   display: grid;
   gap: 12px;
   grid-template-columns: 1fr 1fr;
-  margin-top: 14px;
+  margin-top: 18px;
+  padding-top: 18px;
 }
 
 .step-support > div {
@@ -1138,11 +1140,9 @@ code {
 }
 
 .step-narrative {
-  border-top: 1px solid #dbe5ef;
   display: grid;
   gap: 0;
   margin-top: 18px;
-  padding-top: 18px;
 }
 
 .narrative-item {
