@@ -519,7 +519,7 @@ export function App() {
             <h1 id="hero-title">Build a Visit Prep Sidecar</h1>
             <p className="hero-text">
               A guided workshop for building an embedded SMART on FHIR sidecar app that launches in
-              Athena, reads real patient identity, and uses postMessage to participate in the
+              athenaOne, reads real patient identity, and uses postMessage to participate in the
               provider workspace.
             </p>
             <div className="hero-actions">
@@ -543,13 +543,13 @@ export function App() {
             <div>
               <h2 id="live-heading">Live Workshop Path</h2>
               <p>
-                Follow these steps in order during the event. The 45-minute core gets the complete
-                app behavior working; the 75-minute extension adds debugging and customization.
+                Follow these steps in order during the 60-minute session. The 45-minute core gets the complete
+                app behavior working; the remaining 15 minutes serve as an extension for debugging and customization.
               </p>
             </div>
             <div className="timeline-badges" aria-label="Workshop timing">
               <span>45-minute core</span>
-              <span>75-minute extension</span>
+              <span>15-minute extension</span>
             </div>
           </div>
 
