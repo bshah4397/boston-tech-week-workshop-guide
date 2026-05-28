@@ -104,7 +104,7 @@ const workshopSteps: WorkshopStep[] = [
     whatHappened:
       "Your Coding Agent started the Vite server, used a headless browser to screenshot several pages, and confirmed the slot was discoverable on the dashboard, all routes rendered correctly, and the three registration URLs were properly scoped to the participant's assigned slot number.",
     keyLesson:
-      "These three URLs are what a real Athena developer would copy into the Embedded App Framework registration portal to wire up SMART on FHIR authentication — the launch URL, the post-login redirect, and the post-logout redirect — all scoped to your assigned app number.",
+      "These three URLs are what a partner developer would copy into the Embedded App Framework registration portal to wire up SMART on FHIR authentication — the launch URL, the post-login redirect, and the post-logout redirect — all scoped to your assigned app number.",
   },
   {
     id: "smart",
