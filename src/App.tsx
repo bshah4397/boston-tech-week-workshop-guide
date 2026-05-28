@@ -791,7 +791,12 @@ export function App() {
             <Extension
               icon={<FileText aria-hidden="true" />}
               title="Event Debug Panel"
-              text="Listen for patientContextChanged and appStateChanged, then show a compact developer event log."
+              text={
+                <>
+                  Listen and debug events in your own browser logs. On the Athena origin, set browser localStorage{" "}
+                  <code>eal-trace-level=10</code> to compare how inbound and outbound events are transmitted or received.
+                </>
+              }
             />
             <Extension
               icon={<Wrench aria-hidden="true" />}
@@ -927,7 +932,7 @@ function Trouble({ title, text }: { title: string; text: string }) {
   );
 }
 
-function Extension({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
+function Extension({ icon, title, text }: { icon: React.ReactNode; title: string; text: React.ReactNode }) {
   return (
     <article className="extension-card">
       <div className="icon-tile">{icon}</div>

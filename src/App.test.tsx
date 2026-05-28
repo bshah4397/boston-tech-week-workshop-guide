@@ -174,6 +174,13 @@ describe("Workshop guide", () => {
     expect(screen.getAllByText(/patient-context\?updatedPatient/i).length).toBeGreaterThan(0);
   });
 
+  it("documents the EAL trace localStorage key in the event debug extension", () => {
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: /event debug panel/i })).toBeInTheDocument();
+    expect(screen.getByText(/eal-trace-level=10/i).tagName).toBe("CODE");
+  });
+
   it("uses legible dark text in the sidecar preview", () => {
     render(<App />);
 
